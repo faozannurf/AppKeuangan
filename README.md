@@ -41,7 +41,7 @@ Before installation, ensure you have:
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Creative-Trees/VStudio-Kelola-Keuangan.git
 cd finansphere
 ```
 
