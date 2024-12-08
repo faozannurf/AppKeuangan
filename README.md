@@ -157,6 +157,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## 🙌 Credits
 
 Created by Creative Trees Development Team
-- Lead Developer: M'HALFIRZZHATULLAH
+- Lead Developer: **M'HALFIRZZHATULLAH**
+- Additional Developer: **MICHAEL ANDREA AQUINO**
 
-**© 2024 FinanSphere. All Rights Reserved.**
+**© 2023 FinanSphere. All Rights Reserved.**
