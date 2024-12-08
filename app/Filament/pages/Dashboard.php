@@ -12,16 +12,24 @@ class Dashboard extends BaseDashboard
 {
     use BaseDashboard\Concerns\HasFiltersForm;
 
+    /**
+     * Define the filters form schema for the dashboard.
+     *
+     * @param Form $form
+     * @return Form
+     */
     public function filtersForm(Form $form): Form
     {
         return $form->schema([
             Section::make()
                 ->schema([
                     DatePicker::make('startDate')
-                        ->maxDate(fn (Get $get) => $get('endDate') ?: now()),
+                        ->maxDate(fn (Get $get) => $get('endDate') ?: now())
+                        ->label('Start Date'),
                     DatePicker::make('endDate')
                         ->minDate(fn (Get $get) => $get('startDate') ?: now())
-                        ->maxDate(now()),
+                        ->maxDate(now())
+                        ->label('End Date'),
                 ])
                 ->columns(2),
         ]);

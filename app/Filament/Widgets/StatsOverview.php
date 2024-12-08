@@ -18,37 +18,69 @@ class StatsOverview extends BaseWidget
     use InteractsWithPageFilters;
 
     /**
+     * @var Carbon|null
+     */
+    private ?Carbon $startDate;
+
+    /**
+     * @var Carbon|null
+     */
+    private ?Carbon $endDate;
+
+    /**
      * Get the statistics to be displayed in the widget.
      *
      * @return array
      */
     protected function getStats(): array
     {
-        // Parse the start date from filters or set to null if not provided
-        $startDate = !is_null($this->filters['startDate'] ?? null) ?
-            Carbon::parse($this->filters['startDate']) :
-            null;
+        $this->startDate = $this->parseDate($this->filters['startDate'] ?? null);
+        $this->endDate = $this->parseDate($this->filters['endDate'] ?? now());
 
-        // Parse the end date from filters or set to current date if not provided
-        $endDate = !is_null($this->filters['endDate'] ?? null) ?
-            Carbon::parse($this->filters['endDate']) :
-            now();
+        $pemasukan = $this->calculateTotal(Transaction::income(), $this->startDate, $this->endDate);
+        $pengeluaran = $this->calculateTotal(Transaction::expenses(), $this->startDate, $this->endDate);
 
-        // Calculate total income within the date range
-        $pemasukan = Transaction::income()
-            ->whereBetween('date_transaction', [$startDate, $endDate])
-            ->sum('amount');
-
-        // Calculate total expenses within the date range
-        $pengeluaran = Transaction::expenses()
-            ->whereBetween('date_transaction', [$startDate, $endDate])
-            ->sum('amount');
-
-        // Return the statistics as an array of Stat objects
         return [
-            Stat::make('Total Pemasukan', 'Rp. ' . number_format($pemasukan, 0, ',', '.')),
-            Stat::make('Total Pengeluaran', 'Rp. ' . number_format($pengeluaran, 0, ',', '.')),
-            Stat::make('Selisih', 'Rp. ' . number_format($pemasukan - $pengeluaran, 0, ',', '.')),
+            Stat::make('Total Pemasukan', $this->formatCurrency($pemasukan)),
+            Stat::make('Total Pengeluaran', $this->formatCurrency($pengeluaran)),
+            Stat::make('Selisih', $this->formatCurrency($pemasukan - $pengeluaran)),
         ];
+    }
+
+    /**
+     * Parse a date string into a Carbon instance.
+     *
+     * @param string|null $date
+     * @return Carbon|null
+     */
+    private function parseDate(?string $date): ?Carbon
+    {
+        return $date ? Carbon::parse($date) : null;
+    }
+
+    /**
+     * Calculate the total amount for a given query within a date range.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Carbon|null $startDate
+     * @param Carbon|null $endDate
+     * @return float
+     */
+    private function calculateTotal($query, ?Carbon $startDate, ?Carbon $endDate): float
+    {
+        return $query->when($startDate, fn($q) => $q->where('date_transaction', '>=', $startDate))
+                     ->when($endDate, fn($q) => $q->where('date_transaction', '<=', $endDate))
+                     ->sum('amount');
+    }
+
+    /**
+     * Format a number as a currency string.
+     *
+     * @param float $amount
+     * @return string
+     */
+    private function formatCurrency(float $amount): string
+    {
+        return 'Rp ' . number_format($amount, 2, ',', '.');
     }
 }

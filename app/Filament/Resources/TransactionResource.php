@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Class TransactionResource
@@ -65,10 +66,11 @@ class TransactionResource extends Resource
 
             Forms\Components\TextInput::make('amount')
                 ->required()
-                ->numeric()
                 ->prefix('Rp')
                 ->extraAttributes(['oninput' => 'formatCurrency(this)'])
-                ->label('Jumlah'),
+                ->label('Jumlah')
+                ->formatStateUsing(fn ($state) => number_format((float) str_replace(['Rp', '.', ','], ['', '', '.'], $state), 2, ',', '.'))
+                ->dehydrateStateUsing(fn ($state) => str_replace(['Rp', '.', ','], ['', '', '.'], $state)),
 
             Forms\Components\TextInput::make('note')
                 ->required()
@@ -115,8 +117,13 @@ class TransactionResource extends Resource
             Tables\Columns\TextColumn::make('amount')
                 ->label('Jumlah')
                 ->sortable()
-                ->formatStateUsing(fn (string $state): string => 'Rp ' . number_format((float) $state, 2, ',', '.')),
+                ->formatStateUsing(fn (string $state): string => 'Rp ' . number_format((float) str_replace(['Rp', '.', ','], ['', '', '.'], $state), 2, ',', '.')),
 
+            Tables\Columns\TextColumn::make('note')
+                ->label('Catatan')
+                ->sortable()
+                ->limit(50),
+            
             Tables\Columns\TextColumn::make('created_at')
                 ->dateTime()
                 ->sortable()

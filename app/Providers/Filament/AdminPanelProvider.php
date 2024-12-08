@@ -9,7 +9,8 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets;
+use Filament\Widgets\AccountWidget;
+use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -17,9 +18,22 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Illuminate\Routing\Middleware\ThrottleRequests;
+use App\Http\Middleware\SecurityHeaders;
 
+/**
+ * Class AdminPanelProvider
+ * 
+ * This class provides the configuration for the admin panel in the Filament admin panel.
+ */
 class AdminPanelProvider extends PanelProvider
 {
+    /**
+     * Configure the panel.
+     *
+     * @param Panel $panel
+     * @return Panel
+     */
     public function panel(Panel $panel): Panel
     {
         return $panel
@@ -35,8 +49,8 @@ class AdminPanelProvider extends PanelProvider
             ->pages([])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                AccountWidget::class,
+                FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -48,6 +62,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                ThrottleRequests::class, // Rate limitings
             ])
             ->authMiddleware([
                 Authenticate::class,

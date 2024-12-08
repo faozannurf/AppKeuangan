@@ -42,14 +42,17 @@ class CategoryResource extends Resource
         return $form->schema([
             Forms\Components\TextInput::make('name')
                 ->required()
-                ->maxLength(255),
+                ->maxLength(255)
+                ->label('Category Name'),
 
             Forms\Components\Toggle::make('is_expense')
-                ->required(),
+                ->required()
+                ->label('Is Expense'),
 
             Forms\Components\FileUpload::make('image')
                 ->image()
-                ->required(),
+                ->required()
+                ->label('Category Image'),
         ]);
     }
 
@@ -62,13 +65,15 @@ class CategoryResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            Tables\Columns\ImageColumn::make('image'),
+            Tables\Columns\ImageColumn::make('image')
+                ->label('Image'),
 
             Tables\Columns\TextColumn::make('name')
-                ->searchable(),
+                ->searchable()
+                ->label('Name'),
 
             Tables\Columns\IconColumn::make('is_expense')
-                ->label('Tipe')
+                ->label('Type')
                 ->trueIcon('heroicon-o-arrow-up-circle')
                 ->falseIcon('heroicon-o-arrow-down-circle')
                 ->trueColor('danger')
@@ -78,17 +83,20 @@ class CategoryResource extends Resource
             Tables\Columns\TextColumn::make('created_at')
                 ->dateTime()
                 ->sortable()
-                ->toggleable(isToggledHiddenByDefault: true),
+                ->toggleable(isToggledHiddenByDefault: true)
+                ->label('Created At'),
 
             Tables\Columns\TextColumn::make('updated_at')
                 ->dateTime()
                 ->sortable()
-                ->toggleable(isToggledHiddenByDefault: true),
+                ->toggleable(isToggledHiddenByDefault: true)
+                ->label('Updated At'),
 
             Tables\Columns\TextColumn::make('deleted_at')
                 ->dateTime()
                 ->sortable()
-                ->toggleable(isToggledHiddenByDefault: true),
+                ->toggleable(isToggledHiddenByDefault: true)
+                ->label('Deleted At'),
         ])
         ->filters([
             // Define filters here

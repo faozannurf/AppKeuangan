@@ -39,39 +39,17 @@ class WidgetExpenseChart extends ChartWidget
      */
     protected function getData(): array
     {
-        // Parse the start date from filters or set to the start of the current month if not provided
-        $startDate = !is_null($this->filters['startDate'] ?? null) ?
-            Carbon::parse($this->filters['startDate']) :
-            Carbon::now()->startOfMonth();
+        $startDate = $this->parseDate($this->filters['startDate'] ?? null, Carbon::now()->startOfMonth());
+        $endDate = $this->parseDate($this->filters['endDate'] ?? null, now());
 
-        // Parse the end date from filters or set to the current date if not provided
-        $endDate = !is_null($this->filters['endDate'] ?? null) ?
-            Carbon::parse($this->filters['endDate']) :
-            now();
+        $data = $this->getExpenseData($startDate, $endDate);
 
-        // Query the expense data and aggregate it per day
-        $data = Trend::query(Transaction::expenses()->newQuery())
-            ->between(
-                start: $startDate,
-                end: $endDate,
-            )
-            ->perDay()
-            ->sum('amount');
-
-        // Ensure the data is sorted by date
-        $data = $data->sortBy('date');
-
-        // Calculate the trend direction
         $trendDirection = $data->map(fn (TrendValue $value) => $value->aggregate)->toArray();
-        $sortedTrendDirection = $trendDirection;
-        sort($sortedTrendDirection);
-        $isIncreasing = $trendDirection === $sortedTrendDirection;
+        $isIncreasing = $this->isTrendIncreasing($trendDirection);
 
-        // Set chart color based on trend direction
-        $backgroundColor = $isIncreasing ? 'rgba(75, 192, 192, 0.2)' : 'rgba(255, 99, 132, 0.2)'; // Green if increasing, red if decreasing
-        $borderColor = $isIncreasing ? 'rgba(75, 192, 192, 1)' : 'rgba(255, 99, 132, 1)'; // Green if increasing, red if decreasing
+        $backgroundColor = $isIncreasing ? 'rgba(75, 192, 192, 0.2)' : 'rgba(255, 99, 132, 0.2)';
+        $borderColor = $isIncreasing ? 'rgba(75, 192, 192, 1)' : 'rgba(255, 99, 132, 1)';
 
-        // Return the chart data
         return [
             'datasets' => [
                 [
@@ -94,5 +72,46 @@ class WidgetExpenseChart extends ChartWidget
     protected function getType(): string
     {
         return 'line';
+    }
+
+    /**
+     * Parse a date string into a Carbon instance or return a default value.
+     *
+     * @param string|null $date
+     * @param Carbon $default
+     * @return Carbon
+     */
+    private function parseDate(?string $date, Carbon $default): Carbon
+    {
+        return $date ? Carbon::parse($date) : $default;
+    }
+
+    /**
+     * Get the expense data within a date range.
+     *
+     * @param Carbon $startDate
+     * @param Carbon $endDate
+     * @return \Illuminate\Support\Collection
+     */
+    private function getExpenseData(Carbon $startDate, Carbon $endDate)
+    {
+        return Trend::query(Transaction::expenses()->newQuery())
+            ->between(start: $startDate, end: $endDate)
+            ->perDay()
+            ->sum('amount')
+            ->sortBy('date');
+    }
+
+    /**
+     * Determine if the trend is increasing.
+     *
+     * @param array $trendDirection
+     * @return bool
+     */
+    private function isTrendIncreasing(array $trendDirection): bool
+    {
+        $sortedTrendDirection = $trendDirection;
+        sort($sortedTrendDirection);
+        return $trendDirection === $sortedTrendDirection;
     }
 }

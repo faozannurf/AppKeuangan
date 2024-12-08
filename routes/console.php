@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,5 +16,9 @@ use Illuminate\Support\Facades\Artisan;
 */
 
 Artisan::command('inspire', function () {
+    // Log the execution of the inspire command
+    Log::info('Inspire command executed');
+
+    // Display an inspiring quote
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');

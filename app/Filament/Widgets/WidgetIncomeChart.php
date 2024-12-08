@@ -39,33 +39,14 @@ class WidgetIncomeChart extends ChartWidget
      */
     protected function getData(): array
     {
-        // Parse the start date from filters or set to the start of the current year if not provided
-        $startDate = !is_null($this->filters['startDate'] ?? null) ?
-            Carbon::parse($this->filters['startDate']) :
-            now()->startOfYear();
+        $startDate = $this->parseDate($this->filters['startDate'] ?? null, now()->startOfYear());
+        $endDate = $this->parseDate($this->filters['endDate'] ?? null, now());
 
-        // Parse the end date from filters or set to the current date if not provided
-        $endDate = !is_null($this->filters['endDate'] ?? null) ?
-            Carbon::parse($this->filters['endDate']) :
-            now();
+        $data = $this->getIncomeData($startDate, $endDate);
 
-        // Query the income data and aggregate it per day
-        $data = Trend::query(Transaction::income()->newQuery())
-            ->between(
-                start: $startDate,
-                end: $endDate,
-            )
-            ->perDay()
-            ->sum('amount');
-
-        // Ensure the data is sorted by date
-        $data = $data->sortBy('date');
-
-        // Set chart color to green
         $backgroundColor = 'rgba(75, 192, 192, 0.2)'; // Green
         $borderColor = 'rgba(75, 192, 192, 1)'; // Green
 
-        // Return the chart data
         return [
             'datasets' => [
                 [
@@ -88,5 +69,33 @@ class WidgetIncomeChart extends ChartWidget
     protected function getType(): string
     {
         return 'bar';
+    }
+
+    /**
+     * Parse a date string into a Carbon instance or return a default value.
+     *
+     * @param string|null $date
+     * @param Carbon $default
+     * @return Carbon
+     */
+    private function parseDate(?string $date, Carbon $default): Carbon
+    {
+        return $date ? Carbon::parse($date) : $default;
+    }
+
+    /**
+     * Get the income data within a date range.
+     *
+     * @param Carbon $startDate
+     * @param Carbon $endDate
+     * @return \Illuminate\Support\Collection
+     */
+    private function getIncomeData(Carbon $startDate, Carbon $endDate)
+    {
+        return Trend::query(Transaction::income()->newQuery())
+            ->between(start: $startDate, end: $endDate)
+            ->perDay()
+            ->sum('amount')
+            ->sortBy('date');
     }
 }

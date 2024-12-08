@@ -97,20 +97,26 @@ class Transaction extends Model
      */
     public function setAmountAttribute($value): void
     {
-        // Remove comma separators before storing
-        $this->attributes['amount'] = str_replace(',', '', $value);
+        // Remove non-numeric characters except for the decimal point
+        $cleanedValue = preg_replace('/[^\d,]/', '', $value);
+
+        // Replace comma with dot for decimal point
+        $cleanedValue = str_replace(',', '.', $cleanedValue);
+
+        // Convert to float and store
+        $this->attributes['amount'] = (float) $cleanedValue;
     }
 
     /**
      * Accessor to display amount with thousand separators.
      *
      * @param float $value
-     * @return string
+     * @return float
      */
-    public function getAmountAttribute($value): string
+    public function getAmountAttribute($value): float
     {
-        // Format the amount to Indonesian number format with commas for thousands
-        return number_format($value, 0, ',', '.');
+        // Return the raw amount value
+        return $value;
     }
 
     /**
